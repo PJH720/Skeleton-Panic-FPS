@@ -6,4 +6,8 @@ Temp/
 .env
 .vscode/
 .DS_Store
+node_modules/
+dist/
+.vercel/
+audio/
 

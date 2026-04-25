@@ -1,0 +1,8 @@
+{
+  "name": "re-tension-fps",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes serve web -l tcp://0.0.0.0:3000 -n",
+    "dev": "npx --yes serve web -l tcp://0.0.0.0:3000 -n"
+  }
+}
