@@ -50,28 +50,38 @@ export class GameMap {
 
   isWall(x, y) { return this.get(x, y) > 0; }
 
-  // Playfuljs recursive ray-walking cast (returns array of wall-hit steps)
+  // Iterative ray-walking cast — avoids O(n²) array allocations of the recursive pattern.
+  // EPS guards prevent degenerate steps when sin/cos ≈ 0 due to IEEE 754 rounding.
   cast(point, angle, range) {
     const self = this;
     const sin = Math.sin(angle);
     const cos = Math.cos(angle);
-    const noWall = { length2: Infinity };
+    const EPS = 1e-10;       // near-zero denominator guard
+    const MAX_STEPS = 64;    // hard cap; 24×24 map with range 14 needs ≤ ~28 real steps
 
-    return ray({ x: point.x, y: point.y, height: 0, distance: 0 });
+    const results = [];
+    let origin = { x: point.x, y: point.y, height: 0, distance: 0 };
 
-    function ray(origin) {
-      const stepX = step(sin, cos, origin.x, origin.y);
-      const stepY = step(cos, sin, origin.y, origin.x);
-      const next = stepX.length2 < stepY.length2
-        ? inspect(stepX, 1, 0, origin.distance, stepX.y)
-        : inspect(stepY, 0, 1, origin.distance, stepY.x);
+    for (let i = 0; i < MAX_STEPS; i++) {
+      const sX = step(sin, cos, origin.x, origin.y);
+      const sY = step(cos, sin, origin.y, origin.x);
+      const next = sX.length2 < sY.length2
+        ? inspect(sX, 1, 0, origin.distance, sX.y)
+        : inspect(sY, 0, 1, origin.distance, sY.x);
 
-      if (next.distance > range) return [noWall];
-      return [next].concat(ray(next));
+      // No progress guard: degenerate float at exact grid boundary
+      if (next.distance <= origin.distance + EPS) break;
+      if (next.distance > range) break;
+      results.push(next);
+      origin = next;
     }
+    // Sentinel required by renderer: _drawColumn iterates back-to-front, skips !step.height
+    results.push({ length2: Infinity });
+    return results;
 
     function step(rise, run, x, y) {
-      if (run === 0) return noWall;
+      // Near-zero run means the ray is nearly parallel to this axis — treat as no crossing
+      if (Math.abs(run) < EPS) return { length2: Infinity };
       const dx = run > 0 ? Math.floor(x + 1) - x : Math.ceil(x - 1) - x;
       const dy = dx * (rise / run);
       return { x: x + dx, y: y + dy, length2: dx * dx + dy * dy };
