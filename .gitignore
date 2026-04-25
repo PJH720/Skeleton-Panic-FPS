@@ -1,13 +1,36 @@
+# =========================
+# Agent / Spec Metadata
+# =========================
 CLAUDE.md
 .cursor/
 .claude/
 .specify/
+
+# =========================
+# Local Source Materials
+# =========================
 Temp/
+
+# =========================
+# Environment / Secrets
+# =========================
 .env
+
+# =========================
+# Editor / OS Artifacts
+# =========================
 .vscode/
 .DS_Store
+
+# =========================
+# Build / Dependencies
+# =========================
 node_modules/
 dist/
+
+# =========================
+# Deploy / Runtime Outputs
+# =========================
 .vercel/
 audio/
 
