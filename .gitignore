@@ -1,0 +1,9 @@
+CLAUDE.md
+.cursor/
+.claude/
+.specify/
+Temp/
+.env
+.vscode/
+.DS_Store
+
