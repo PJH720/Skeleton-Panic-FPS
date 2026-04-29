@@ -1,4 +1,6 @@
-# RE Tension Game Making
+# RE Tension Game Making 
+
+(해당 프로젝트는 'RE Tension' 행사에서 기획된 짧은 시간 안에 게임 만들기 행사에 출품한 제작물입니다. 아직 수정 중입니다.)
 
 *Korean: [README.ko.md](README.ko.md)*
 
