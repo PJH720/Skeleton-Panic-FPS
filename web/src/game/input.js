@@ -16,9 +16,11 @@ export class Input {
     this.backward = false;
     this.left     = false;
     this.right    = false;
-    this._shootQueued = false;
-    this._mouseDx = 0;
-    this._locked  = false;
+    this._shootQueued  = false;
+    this._mouseDx      = 0;
+    this._locked       = false;
+    this._choiceQueued = 0;          // 1|2|3 set by Digit/Numpad keys or modal touches
+    this.modalActive   = false;      // main.js toggles around enterLevelUp/exitLevelUp
 
     document.addEventListener('keydown', this._onKey.bind(this, true));
     document.addEventListener('keyup',   this._onKey.bind(this, false));
@@ -51,10 +53,22 @@ export class Input {
     return v;
   }
 
+  /** Returns 1|2|3 once per press, else 0 */
+  consumeChoice() {
+    const v = this._choiceQueued;
+    this._choiceQueued = 0;
+    return v;
+  }
+
   _onKey(val, e) {
     const action = KEY_MAP[e.code];
     if (action) { this[action] = val; e.preventDefault(); return; }
-    if (e.code === 'Space' && val) { this._shootQueued = true; e.preventDefault(); }
+    if (val) {
+      if (e.code === 'Space')                              { this._shootQueued = true;  e.preventDefault(); return; }
+      if (e.code === 'Digit1' || e.code === 'Numpad1')     { this._choiceQueued = 1;    e.preventDefault(); return; }
+      if (e.code === 'Digit2' || e.code === 'Numpad2')     { this._choiceQueued = 2;    e.preventDefault(); return; }
+      if (e.code === 'Digit3' || e.code === 'Numpad3')     { this._choiceQueued = 3;    e.preventDefault(); return; }
+    }
   }
 
   _onMouseClick() { this._shootQueued = true; }
@@ -73,10 +87,18 @@ export class Input {
     e.preventDefault();
   }
 
-  // Touch layout: top-half = forward, bottom-left = turn left, bottom-right = turn right
+  // Touch layout (play): top-half = forward, bottom-left = turn left, bottom-right = turn right.
   // Second simultaneous touch = shoot.  (Fixes playfuljs typo: pageX not pageY for right check)
+  // Touch layout (modal): pageY band → choice 1|2|3 (top/middle/bottom thirds).
   _onTouch(e) {
     e.preventDefault();
+    if (!e.touches[0]) return;
+    if (this.modalActive) {
+      const y = e.touches[0].pageY;
+      const h = window.innerHeight;
+      this._choiceQueued = y < h / 3 ? 1 : y < 2 * h / 3 ? 2 : 3;
+      return;
+    }
     this._clearMove();
     const t = e.touches[0];
     if (t.pageY < window.innerHeight * 0.5) {

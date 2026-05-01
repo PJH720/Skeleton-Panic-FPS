@@ -6,7 +6,7 @@ export class Weapon {
   update(paces) { this._paces = paces; }
 
   // Centre-screen hitscan: returns the nearest living enemy in the crosshair cone
-  hitscan(player, enemyList) {
+  hitscan(player, enemyList, coneTan = 0.18) {
     const cx = Math.cos(player.direction);
     const cy = Math.sin(player.direction);
     let best = null;
@@ -20,12 +20,31 @@ export class Weapon {
       if (dot < 0.5) continue;              // behind player
       const dist  = Math.sqrt(dx * dx + dy * dy);
       const cross = dx * cy - dy * cx;
-      if (Math.abs(cross / dist) < 0.18 && dist < bestDist) {
+      if (Math.abs(cross / dist) < coneTan && dist < bestDist) {
         bestDist = dist;
         best = e;
       }
     }
     return best;
+  }
+
+  // Pierce variant: returns every in-cone living enemy, no nearest filtering
+  hitscanAll(player, enemyList, coneTan = 0.18) {
+    const cx = Math.cos(player.direction);
+    const cy = Math.sin(player.direction);
+    const hits = [];
+
+    for (const e of enemyList) {
+      if (e.dead) continue;
+      const dx = e.x - player.x;
+      const dy = e.y - player.y;
+      const dot   = dx * cx + dy * cy;
+      if (dot < 0.5) continue;
+      const dist  = Math.sqrt(dx * dx + dy * dy);
+      const cross = dx * cy - dy * cx;
+      if (Math.abs(cross / dist) < coneTan) hits.push(e);
+    }
+    return hits;
   }
 
   // Simple procedural gun shape; replace with sprite later
